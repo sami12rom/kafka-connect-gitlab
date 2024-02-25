@@ -16,7 +16,7 @@ allprojects {
     val currentDateTime: LocalDateTime = LocalDateTime.now()
 
     group = "com.sami12rom.kafka.gitlab"
-    version = "1.0.3"
+    version = "1.0.3-${details.gitHash}"
     description = "Kafka Gitlab Source Connector"
 
     repositories {
