@@ -10,7 +10,7 @@ phases:
       - sudo update-alternatives --config java
       - sudo update-alternatives --set java /root/.sdkman/candidates/java/22.3.r19-grl/bin/java
       - /bin/bash -c "java -version"
-  build_jar:
+  pre_build:
     commands:
       - echo "Building Kafka Connector Jar"
       - /bin/bash -c "cd /"
@@ -18,7 +18,7 @@ phases:
       - gradle build
       - echo "Deploy Kafka Connector Jar to CodeArtifact"
       - gradle publish
-  build_docker_image:
+  build:
     commands:
       - echo "Building Docker Image"
       - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s8d1v5z2
