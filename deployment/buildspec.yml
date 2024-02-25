@@ -32,11 +32,11 @@ phases:
       - echo "Confluent Version is:" $CONFLUENT_CONNECT_VERSION
       - docker build -f ./deployment/Dockerfile --build-arg CONFLUENT_CONNECT_VERSION=$CONFLUENT_CONNECT_VERSION -t $ecr_repository_url:$CODEBUILD_BUILD_NUMBER -t $ecr_repository_url:latest .
       - docker push $ecr_repository_url:$CODEBUILD_BUILD_NUMBER && docker push $ecr_repository_url:latest
-    post_build:
-        commands:
-        - echo "Post Build"
-        - echo "Pushing Docker Image to ECR"
-#        - docker build -t kafkaconnect .
-#        - docker tag kafkaconnect:latest public.ecr.aws/s8d1v5z2/kafkaconnect:latest
-#        - docker push public.ecr.aws/s8d1v5z2/kafkaconnect:latest
-#        - echo "Docker Image Pushed to ECR"
+  post_build:
+    commands:
+      - echo "Post Build"
+      - echo "Pushing Docker Image to ECR"
+#      - docker build -t kafkaconnect .
+#       - docker tag kafkaconnect:latest public.ecr.aws/s8d1v5z2/kafkaconnect:latest
+#       - docker push public.ecr.aws/s8d1v5z2/kafkaconnect:latest
+#       - echo "Docker Image Pushed to ECR"
