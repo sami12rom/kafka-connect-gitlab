@@ -14,4 +14,4 @@ RUN \
     unzip tar ncurses zip
 
 
-ADD ./connectors /usr/share/confluent-hub-components
+ADD connectors /usr/share/confluent-hub-components
