@@ -12,3 +12,6 @@ RUN \
     wget vim jq \
     curl sudo nano findutils \
     unzip tar ncurses zip
+
+
+ADD ./connectors /usr/share/confluent-hub-components

@@ -26,7 +26,7 @@ phases:
       - echo "Get Latest Kafka Connect Jar File from CodeArtifact"
       - export LATESTJARVERSION=`aws codeartifact list-package-versions --domain essent-eda --domain-owner 587693564902 --repository gitlabKafkaConnector --format maven --package gitlab-connector --namespace com.sami12rom.kafka.gitlab --output text --query "defaultDisplayVersion"`
       - echo "latest jar version:" $LATESTJARVERSION
-      - aws codeartifact get-package-version-asset --domain essent-eda --domain-owner 587693564902 --repository gitlabKafkaConnector --format maven --namespace com.sami12rom.kafka.gitlab --package gitlab-connector --package-version $LATESTJARVERSION --asset gitlab-connector-$LATESTJARVERSION.jar  gitlab-connector-$LATESTJARVERSION.jar
+      - aws codeartifact get-package-version-asset --domain essent-eda --domain-owner 587693564902 --repository gitlabKafkaConnector --format maven --namespace com.sami12rom.kafka.gitlab --package gitlab-connector --package-version $LATESTJARVERSION --asset gitlab-connector-$LATESTJARVERSION.jar  ./connectors/gitlab-connector-$LATESTJARVERSION.jar
       - ls -l
       - export CONFLUENT_CONNECT_VERSION=7.6.0
       - echo "Confluent Version is:" $CONFLUENT_CONNECT_VERSION
@@ -37,6 +37,6 @@ phases:
       - echo "Post Build"
       - echo "Pushing Docker Image to ECR"
 #      - docker build -t kafkaconnect .
-#       - docker tag kafkaconnect:latest public.ecr.aws/s8d1v5z2/kafkaconnect:latest
-#       - docker push public.ecr.aws/s8d1v5z2/kafkaconnect:latest
+#      - docker tag kafkaconnect:latest public.ecr.aws/s8d1v5z2/kafkaconnect:latest
+#      - docker push public.ecr.aws/s8d1v5z2/kafkaconnect:latest
 #       - echo "Docker Image Pushed to ECR"
