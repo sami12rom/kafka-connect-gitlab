@@ -22,6 +22,7 @@ phases:
     commands:
       - echo "Building Docker Image"
       - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s8d1v5z2
+      - export ecr_repository_url=public.ecr.aws/s8d1v5z2/kafkaconnect
       - echo "Get Latest Kafka Connect Jar File from CodeArtifact"
       - export LATESTJARVERSION=`aws codeartifact list-package-versions --domain essent-eda --domain-owner 587693564902 --repository gitlabKafkaConnector --format maven --package gitlab-connector --namespace com.sami12rom.kafka.gitlab --output text --query "defaultDisplayVersion"`
       - echo "latest jar version:" $LATESTJARVERSION
@@ -29,9 +30,8 @@ phases:
       - ls -l
       - export CONFLUENT_CONNECT_VERSION=7.6.0
       - echo "Confluent Version is:" $CONFLUENT_CONNECT_VERSION
-      - docker build -f ./deployment/Dockerfile -t kafkaconnect --build-arg CONFLUENT_CONNECT_VERSION=$CONFLUENT_CONNECT_VERSION .
-#      - docker tag kafkaconnect:latest public.ecr.aws/s8d1v5z2/kafkaconnect:latest
-#      - docker push public.ecr.aws/s8d1v5z2/kafkaconnect:latest
+      - docker build -f ./deployment/Dockerfile --build-arg CONFLUENT_CONNECT_VERSION=$CONFLUENT_CONNECT_VERSION -t $ecr_repository_url:$CODEBUILD_BUILD_NUMBER -t $ecr_repository_url:latest .
+      - docker push $ecr_repository_url:$CODEBUILD_BUILD_NUMBER && docker push $ecr_repository_url:latest
     post_build:
         commands:
         - echo "Post Build"
