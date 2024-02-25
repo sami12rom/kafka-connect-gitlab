@@ -12,6 +12,7 @@ plugins {
 allprojects {
     val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
     val details = versionDetails()
+    println(details)
     val currentDateTime: LocalDateTime = LocalDateTime.now()
 
     group = "com.sami12rom.kafka.gitlab"
@@ -62,7 +63,6 @@ allprojects {
                 mapOf(
                     "Build-Timestamp" to currentDateTime,
                     "Build-Revision" to details.gitHash,
-                    "Build-Active-Branch" to details.branchName,
                     "Build-Is-Clean" to details.isCleanTag,
                     "Connector-Version" to project.version
                 )
