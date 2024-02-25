@@ -1,6 +1,6 @@
 ARG CONFLUENT_CONNECT_VERSION=7.4.0
 ARG CONFLUENT_IMAGE=confluentinc/cp-kafka-connect:$CONFLUENT_CONNECT_VERSION
-FROM --platform=linux/amd64 $CONFLUENT_IMAGE
+FROM --platform=linux/arm64 $CONFLUENT_IMAGE
 USER root
 
 # Update the image
