@@ -1,0 +1,39 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Setting up Java Version"
+      - curl -s "https://get.sdkman.io" | bash
+      - /bin/bash -c "source /root/.sdkman/bin/sdkman-init.sh; sdk install java 22.3.r19-grl; sdk install gradle; sdk use java 22.3.r19-grl; sdk default java 22.3.r19-grl"
+      - sudo update-alternatives --install /usr/bin/java java $HOME/.sdkman/candidates/java/22.3.r19-grl/bin/java 1
+      - sudo update-alternatives --config java
+      - sudo update-alternatives --set java /root/.sdkman/candidates/java/22.3.r19-grl/bin/java
+      - /bin/bash -c "java -version"
+  pre_build:
+    commands:
+      - echo "Building Kafka Connector Jar"
+      - /bin/bash -c "cd /"
+      - export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain essent-eda --domain-owner 587693564902 --region eu-central-1 --query authorizationToken --output text`
+      - gradle build
+      - gradle publish
+  build:
+    commands:
+      - echo "Building Docker Image"
+      - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/s8d1v5z2
+      - echo "Get Latest Kafka Connect Jar File from CodeArtifact"
+      - export LATESTJARVERSION=`aws codeartifact list-package-versions --domain essent-eda --domain-owner 587693564902 --repository gitlabKafkaConnector --format maven --package gitlab-connector --namespace com.sami12rom.kafka.gitlab --output text --query 'defaultDisplayVersion'`
+      - echo "Latest Jar Version: $LATESTJARVERSION"
+      - aws codeartifact get-package-version-asset --domain essent-eda --domain-owner 587693564902 --repository gitlabKafkaConnector --format maven --namespace com.sami12rom.kafka.gitlab --package gitlab-connector --package-version $LATESTJARVERSION --asset gitlab-connector-$LATESTJARVERSION.jar  gitlab-connector-$LATESTJARVERSION.jar
+      - ls -l
+#      - docker build -t kafkaconnect .
+#      - docker tag kafkaconnect:latest public.ecr.aws/s8d1v5z2/kafkaconnect:latest
+#      - docker push public.ecr.aws/s8d1v5z2/kafkaconnect:latest
+    post_build:
+        commands:
+        - echo "Post Build"
+        - echo "Pushing Docker Image to ECR"
+#        - docker build -t kafkaconnect .
+#        - docker tag kafkaconnect:latest public.ecr.aws/s8d1v5z2/kafkaconnect:latest
+#        - docker push public.ecr.aws/s8d1v5z2/kafkaconnect:latest
+#        - echo "Docker Image Pushed to ECR"
