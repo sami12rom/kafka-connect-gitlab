@@ -3,7 +3,7 @@ package com.sami12rom.kafka.gitlab
 import kotlinx.serialization.Serializable
 //import org.apache.avro.Schema
 //import org.apache.avro.SchemaBuilder
-import org.apache.avro.generic.GenericData
+//import org.apache.avro.generic.GenericData
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.Struct
@@ -11,7 +11,8 @@ import java.util.Dictionary
 
 class Schemas {
     companion object {
-        val mergedRequestValueSchema: Schema = SchemaBuilder.struct().name("mergedRequestValueSchema")
+        val mergedRequestValueSchema: Schema = SchemaBuilder.struct()
+            .name("com.sami12rom.mergedRequest").version(1).doc("Merged Request Value Schema")
             .field("id", SchemaBuilder.int64())
             .field("iid", SchemaBuilder.int64())
             .field("project_id", SchemaBuilder.int64())

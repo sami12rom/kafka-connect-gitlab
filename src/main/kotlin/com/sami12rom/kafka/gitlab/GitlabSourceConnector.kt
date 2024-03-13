@@ -9,6 +9,7 @@ import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.source.SourceConnector
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -32,6 +33,7 @@ class GitlabSourceConnector: SourceConnector() {
     override fun start(props: MutableMap<String, String>?) {
         logger.info("Starting GitlabSourceConnector with props: $props")
         this.props = props
+        //TODO("Get latest varialbes to start / restart the connector")
     }
 
     override fun taskClass(): Class<out Task> {
@@ -76,10 +78,11 @@ class GitlabSourceConnector: SourceConnector() {
             }
         }
         return taskConfigs
+        //TODO("Improve logic for taskConfigs")
     }
 
     override fun stop() {
-        logger.info("Requested connector to stop at ${LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)}")
+        logger.info("Requested connector to stop at ${Instant.now()}")
     }
 
 }

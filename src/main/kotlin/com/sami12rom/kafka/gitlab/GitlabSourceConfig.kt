@@ -4,6 +4,7 @@ import org.apache.commons.validator.routines.UrlValidator
 import org.apache.kafka.common.config.AbstractConfig
 import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.common.config.ConfigException
+import java.time.Instant
 import java.time.LocalDateTime
 
 class GitlabSourceConfig : AbstractConfig {
@@ -11,18 +12,19 @@ class GitlabSourceConfig : AbstractConfig {
     companion object {
 
         const val GITLAB_REPOSITORIES_CONFIG = "gitlab.repositories"
-        private const val GITLAB_ENDPOINT_CONFIG = "gitlab.service.url"
-        private const val GITLAB_RESOURCES_CONFIG = "gitlab.resources"
-        private const val GITLAB_SINCE_CONFIG = "gitlab.since"
-        private const val TOPICS_CONFIG = "topic.name.pattern"
-        private const val TOKEN_CONFIG = "gitlab.access.token"
-        private const val INTERVAL = "max.poll.interval.ms"
+        const val GITLAB_ENDPOINT_CONFIG = "gitlab.service.url"
+        const val GITLAB_RESOURCES_CONFIG = "gitlab.resources"
+        const val GITLAB_SINCE_CONFIG = "gitlab.since"
+        const val TOPICS_CONFIG = "topic.name.pattern"
+        const val TOKEN_CONFIG = "gitlab.access.token"
+        const val INTERVAL = "max.poll.interval.ms"
+        const val gitlabUrl = "https://gitlab.essent.nl/api/v4/"
 
 
         val CONFIG: ConfigDef = ConfigDef()
             .define(
                 /* name = */ GITLAB_REPOSITORIES_CONFIG,
-                /* type = */ ConfigDef.Type.STRING,
+                /* type = */ ConfigDef.Type.LIST, //TODO("Test List type")
                 /* importance = */ ConfigDef.Importance.HIGH,
                 /* documentation = */ "The GitLab repositories to read from in the form of owner/repo-name. For example, “confluentinc/kafka-connect-github, confluentinc/kafka-connect-jira”",
                 /* group = */ "Settings",
@@ -33,9 +35,9 @@ class GitlabSourceConfig : AbstractConfig {
             .define(
                 /* name = */ GITLAB_ENDPOINT_CONFIG,
                 /* type = */ ConfigDef.Type.STRING,
-                /* defaultValue = */ "https://gitlab.essent.nl/api/v4/",
+                /* defaultValue = */ gitlabUrl,
                 /* validator = */ GitlabEndpointConfig.EndpointValidator(),
-                /* importance = */ ConfigDef.Importance.HIGH,
+                /* importance = */ ConfigDef.Importance.MEDIUM,
                 /* documentation = */ "GitLab API Root Endpoint Ex. https://gitlab.example.com/api/v4/",
                 /* group = */ "Settings",
                 /* orderInGroup = */ -1,
@@ -59,7 +61,8 @@ class GitlabSourceConfig : AbstractConfig {
             .define(
                 /* name = */ GITLAB_SINCE_CONFIG,
                 /* type = */ ConfigDef.Type.STRING,
-                /* defaultValue = */ "${LocalDateTime.now()}",
+                /* defaultValue = */ "${Instant.now()}",
+                /* validator = */ GitlabSinceConfig.SinceValidator(),
                 /* importance = */ ConfigDef.Importance.MEDIUM,
                 /* documentation = */ "Records created or updated after this time will be processed by the connector. If left blank, the default time will be set to the time this connector is launched Ex. YYYY-MM-DD or YYYY-MM-DDThh:mm:ssZ",
                 /* group = */ "Settings",
@@ -69,8 +72,7 @@ class GitlabSourceConfig : AbstractConfig {
             )
             .define(
                 /* name = */ TOKEN_CONFIG,
-                /* type = */ ConfigDef.Type.STRING,
-                /* defaultValue = */ "https://gitlab.essent.nl/api/v4/",
+                /* type = */ ConfigDef.Type.PASSWORD,
                 /* importance = */ ConfigDef.Importance.HIGH,
                 /* documentation = */ "The supplied token will be used as the value of Authorization header in HTTP requests",
                 /* group = */ "Settings",
@@ -145,6 +147,19 @@ class GitlabResourcesConfig {
             val resource = value as String
             if (!validResources.contains(resource)) {
                 throw ConfigException("$resource is not a valid resource")
+            }
+        }
+    }
+}
+
+class GitlabSinceConfig {
+    class SinceValidator: ConfigDef.Validator {
+        override fun ensureValid(name: String?, value: Any?) {
+            val timestamp = value as String
+            try {
+                Instant.parse(timestamp)
+            } catch (e: Exception) {
+                throw ConfigException("$timestamp must be a valid timestamp  formatted according to ISO standards, use examples 2023-12-10T20:12:59.300Z")
             }
         }
     }
