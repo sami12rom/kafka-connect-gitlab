@@ -2,6 +2,7 @@ package com.sami12rom.kafka.gitlab.helpers
 
 
 //import java.util.logging.Logger
+import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.gitlabUrl
 import com.sami12rom.kafka.gitlab.MergedRequest
 import java.net.URL
 import java.net.URLEncoder
@@ -14,7 +15,7 @@ class ApiCalls {
             val since = props.get("gitlab.since")
             val token = "Bearer ${props.get("gitlab.access.token")}"
             val url = URL(
-                props.get("gitlab.service.url")
+                props.get("gitlab.service.url")?: gitlabUrl
                     .plus("projects/")
                     .plus("$repositories/")
                     .plus("$resources?")
