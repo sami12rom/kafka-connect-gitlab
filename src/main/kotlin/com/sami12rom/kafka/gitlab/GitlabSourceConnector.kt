@@ -3,7 +3,6 @@ package com.sami12rom.kafka.gitlab
 
 import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.GITLAB_REPOSITORIES_CONFIG
 import com.sami12rom.kafka.gitlab.helpers.ConnectorVersionDetails
-import com.sami12rom.kafka.gitlab.helpers.Utils
 import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.source.SourceConnector
@@ -11,8 +10,6 @@ import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class GitlabSourceConnector: SourceConnector() {
 
@@ -55,7 +52,6 @@ class GitlabSourceConnector: SourceConnector() {
         }
 
         return taskConfigs
-        //TODO("Improve logic for taskConfigs")
     }
 
     override fun stop() {
