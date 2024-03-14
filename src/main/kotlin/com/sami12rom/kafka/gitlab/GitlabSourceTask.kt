@@ -6,6 +6,7 @@ import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.GITLAB_SINCE_CONF
 import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.INTERVAL
 import com.sami12rom.kafka.gitlab.helpers.ApiCalls
 import com.sami12rom.kafka.gitlab.helpers.ConnectorVersionDetails
+import com.sami12rom.kafka.gitlab.model.MergedRequest
 import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTask
@@ -22,8 +23,6 @@ class GitlabSourceTask : SourceTask() {
     }
 
     private var props: MutableMap<String, String>? = null
-//    private var interval: Long? = props?.get("max.poll.interval.ms")?.toLong()?: 3000
-    private var lastPoll: Long = 0
     private var firstRun: Boolean = true
 
     override fun version(): String {
@@ -38,7 +37,6 @@ class GitlabSourceTask : SourceTask() {
         initializeSource()
     }
 
-
     override fun stop() {
         logger.info("Requested task to stop")
     }
@@ -46,11 +44,11 @@ class GitlabSourceTask : SourceTask() {
     override fun poll(): MutableList<SourceRecord> {
         sleepForInterval()
         val records = mutableListOf<SourceRecord>()
+        val currentDateTime = Instant.now()
         try {
             val validateRepositories = props?.get(GITLAB_REPOSITORIES_CONFIG)?.split(";")
             for (repository in validateRepositories!!) {
                 props?.put(GITLAB_REPOSITORIES_CONFIG, repository)
-
                 val response = ApiCalls.GitLabCall(props!!)
                 for (message in response) {
                     val record = SourceRecord(
@@ -63,12 +61,14 @@ class GitlabSourceTask : SourceTask() {
                     records.add(record)
                 }
             }
+            // Update the offset to the current time
+            props?.put(GITLAB_SINCE_CONFIG, currentDateTime.toString())
 
         } catch (e: Exception) {
             throw e
         }
+        logger.info("Records sent till ${currentDateTime}: ${records.size}")
         return records
-        //TODO("Improve Logic")
     }
 
     private fun sourcePartition(): Map<String, String> {
@@ -88,20 +88,18 @@ class GitlabSourceTask : SourceTask() {
          val lastRecordedOffset = context.offsetStorageReader().offset(sourcePartition())
          if (lastRecordedOffset != null) {
              // Use the last recorded offset to start reading from the source
-             println("Last recorded offset: ${lastRecordedOffset.get(GITLAB_SINCE_CONFIG)}")
+             logger.info("Last recorded offset: ${lastRecordedOffset.get(GITLAB_SINCE_CONFIG)}")
              props?.put(GITLAB_SINCE_CONFIG, lastRecordedOffset.get(GITLAB_SINCE_CONFIG) as String)
          } else {
-                println("No offset recorded, start reading from the beginning or a default position")
+             logger.info("No offset recorded, start reading from the beginning or a default position")
          }
         return lastRecordedOffset
     }
 
     fun sleepForInterval() {
-        val currentTime = System.currentTimeMillis()
-        println(Date(currentTime))
         val interval = props!!.get(INTERVAL)!!.toLong()
-        println("Sleep for interval: ${interval/1000} seconds")
         if (!firstRun) {
+            logger.info("Sleep for interval: ${interval/1000} seconds")
             Thread.sleep(interval)
         } else {
             firstRun = false

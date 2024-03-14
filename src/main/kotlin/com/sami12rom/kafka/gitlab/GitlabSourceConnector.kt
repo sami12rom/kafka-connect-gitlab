@@ -34,7 +34,6 @@ class GitlabSourceConnector: SourceConnector() {
     override fun start(props: MutableMap<String, String>?) {
         logger.info("Starting GitlabSourceConnector with props: $props")
         this.props = props
-        //TODO("Get latest varialbes to start / restart the connector")
     }
 
     override fun taskClass(): Class<out Task> {
@@ -51,7 +50,7 @@ class GitlabSourceConnector: SourceConnector() {
             val taskProps = mutableMapOf<String, String>()
             taskProps.putAll(props?.toMap()!!)
             taskProps.replace(GITLAB_REPOSITORIES_CONFIG, group.joinToString(";"))
-            println(taskProps)
+            logger.info(taskProps.toString())
             taskConfigs.add(taskProps)
         }
 

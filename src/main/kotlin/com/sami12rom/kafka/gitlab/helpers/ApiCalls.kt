@@ -9,7 +9,7 @@ import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.GITLAB_SINCE_CONF
 import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.TOKEN_CONFIG
 import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.gitlabUrl
 import com.sami12rom.kafka.gitlab.GitlabSourceTask
-import com.sami12rom.kafka.gitlab.MergedRequest
+import com.sami12rom.kafka.gitlab.model.MergedRequest
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import org.slf4j.Logger
@@ -33,7 +33,7 @@ class ApiCalls {
                     .plus("$resources?")
                     .plus("per_page=100&")
                     .plus("scope=all&")
-                    .plus("created_after=$since$")
+                    .plus("created_after=$since")
 
             try {
                 val response = Utils.retryOnError { Utils.apiStructCall(URL(url), token) }
@@ -45,13 +45,14 @@ class ApiCalls {
                     val response = Utils.retryOnError {
                         Utils.apiStructCall(
                             URL(
-                                url.plus("page=$i")), token)
+                                url.plus("&page=$i")), token)
                     }
                     var parsedItem = json.parseToJsonElement(
                         response.inputStream.bufferedReader().readText()
                     ).jsonArray
                     parsed = JsonArray(parsed.plus(parsedItem))
                 }
+
                 return json.decodeFromJsonElement<List<MergedRequest>>(parsed)
             } catch (e: Exception) {
                 throw RuntimeException("Error calling GitLab API", e)
