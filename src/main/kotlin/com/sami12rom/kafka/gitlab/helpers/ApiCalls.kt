@@ -36,9 +36,9 @@ class ApiCalls {
                     .plus("created_after=$since")
 
             try {
-                val response = Utils.retryOnError { Utils.apiStructCall(URL(url), token) }
-                val totalPages = response.headerFields.get("X-Total-Pages")?.get(0)?.toInt()?: 1
-                var body = response.inputStream.bufferedReader().readText()
+                val main_response = Utils.retryOnError { Utils.apiStructCall(URL(url), token) }
+                val totalPages = main_response.headerFields.get("X-Total-Pages")?.get(0)?.toInt()?: 1
+                var body = main_response.inputStream.bufferedReader().readText()
                 val json = Json { ignoreUnknownKeys = true ; prettyPrint = true}
                 var parsed = json.parseToJsonElement(body).jsonArray
                 for (i in 2..totalPages) {
