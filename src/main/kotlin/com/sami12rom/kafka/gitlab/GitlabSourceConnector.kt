@@ -56,6 +56,7 @@ class GitlabSourceConnector: SourceConnector() {
         }
 
         return taskConfigs
+        //TODO("Improve logic for taskConfigs")
     }
 
     override fun stop() {
