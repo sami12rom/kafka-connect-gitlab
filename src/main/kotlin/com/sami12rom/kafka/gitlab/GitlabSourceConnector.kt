@@ -7,6 +7,7 @@ import com.sami12rom.kafka.gitlab.helpers.Utils
 import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.source.SourceConnector
+import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Instant
@@ -43,42 +44,18 @@ class GitlabSourceConnector: SourceConnector() {
     override fun taskConfigs(maxTasks: Int): MutableList<MutableMap<String, String>> {
         val taskConfigs = mutableListOf<MutableMap<String, String>>()
         val repositories = props?.get(GITLAB_REPOSITORIES_CONFIG).toString().split(", ")
-        val numTasks = repositories.size.coerceAtMost(maxTasks)
-        when (numTasks) {
-            repositories.size -> {
-                println("numTasks == $numTasks")
-                for (item in 0..< numTasks) {
-                    val taskProps = mutableMapOf<String, String>()
-                    taskProps.putAll(props?.toMap()!!)
-                    taskProps.replace("gitlab.repositories", repositories.get(item))
-                    taskConfigs.add(taskProps)
-                }
-            }
-            1 -> {
-                println("numTasks == $numTasks")
-                for (item in 0..< numTasks) {
-                    val taskProps = mutableMapOf<String, String>()
-                    taskProps.putAll(props?.toMap()!!)
-                    taskConfigs.add(taskProps)
-                }
-            }
-            2 -> {
-                println("numTasks == $numTasks")
-                val groups = Utils.randomizer(repositories)
-                for (item in 0..< numTasks) {
-                    val taskProps = mutableMapOf<String, String>()
-                    taskProps.putAll(props?.toMap()!!)
-                    taskProps.replace("gitlab.repositories", groups.toList().get(item).toString()
-                        .replace("[", "")
-                        .replace("]", "")
-                        .replace(" ", "")
-                    )
-                    taskConfigs.add(taskProps)
-                }
-            }
+        val groups = repositories.size.coerceAtMost(maxTasks)
+        val reposGrouped = ConnectorUtils.groupPartitions(repositories, groups)
+
+        for (group in reposGrouped) {
+            val taskProps = mutableMapOf<String, String>()
+            taskProps.putAll(props?.toMap()!!)
+            taskProps.replace(GITLAB_REPOSITORIES_CONFIG, group.joinToString(";"))
+            println(taskProps)
+            taskConfigs.add(taskProps)
         }
+
         return taskConfigs
-        //TODO("Improve logic for taskConfigs")
     }
 
     override fun stop() {

@@ -12,7 +12,7 @@ class GitlabSourceConnectorTest {
     private lateinit var connector: GitlabSourceConnector
     // Mock the config map
     private val config = mapOf(
-        GitlabSourceConfig.GITLAB_REPOSITORIES_CONFIG to "kafka/confluent_kafka_connect_aws_terraform, kafka/conluent",
+        GitlabSourceConfig.GITLAB_REPOSITORIES_CONFIG to "kafka/confluent_kafka_connect_aws_terraform, integration/functional-services, personalisation/backend-services",
         GitlabSourceConfig.GITLAB_ENDPOINT_CONFIG to "https://gitlab.essent.nl/api/v4/",
         GitlabSourceConfig.GITLAB_RESOURCES_CONFIG to "merge_requests",
         GitlabSourceConfig.GITLAB_SINCE_CONFIG to "2023-12-10T20:12:59.300Z",

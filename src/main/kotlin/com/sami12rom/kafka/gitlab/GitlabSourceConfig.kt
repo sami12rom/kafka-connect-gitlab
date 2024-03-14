@@ -93,7 +93,7 @@ class GitlabSourceConfig : AbstractConfig {
             .define(
                 /* name = */ INTERVAL,
                 /* type = */ ConfigDef.Type.LONG,
-                /* defaultValue = */ 30000,
+                /* defaultValue = */ 300000,
                 /* importance = */ ConfigDef.Importance.LOW,
                 /* documentation = */ "The time in milliseconds to wait while polling for a full batch of records Ex. 30000",
                 /* group = */ "Limits",

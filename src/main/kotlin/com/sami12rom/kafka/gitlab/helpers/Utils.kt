@@ -20,7 +20,7 @@ class Utils {
             }
         }
 
-        fun retryOnError(function: () -> List<Any>): List<Any> {
+        fun retryOnError(function: () -> HttpURLConnection): HttpURLConnection {
             // A variable to keep track of the number of attempts
             var attempts = 0
             // A variable to keep track of the waiting time
@@ -54,22 +54,24 @@ class Utils {
             val response = connection.inputStream.bufferedReader().readText()
             connection.disconnect()
             val parsed = Json.parseToJsonElement(response)
-            println(parsed)
+//            println(parsed)
             return parsed.jsonArray
         }
 
-        fun apiStructCall(url: URL, token: String = ""): List<MergedRequest> {
-            var connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
-            connection.setRequestProperty("Authorization", token)
-            connection.connect()
-            // Read the response as a string
-            val response = connection.inputStream.bufferedReader().readText()
-            connection.disconnect()
-            val json = Json { ignoreUnknownKeys = true ; prettyPrint = true}
-            val parsed = json.decodeFromString<List<MergedRequest>>(response)
-            return parsed
+        fun apiStructCall(url: URL, token: String = ""): HttpURLConnection {
+            var connection = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                setRequestProperty("Authorization", token)
+                connect()
+            }
+            return try {
+                val response = connection
+                response
+            } finally {
+                connection.disconnect()
+            }
         }
+
 
 //
 //
