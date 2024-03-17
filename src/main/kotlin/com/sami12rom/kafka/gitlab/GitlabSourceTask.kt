@@ -4,10 +4,15 @@ import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.GITLAB_REPOSITORI
 import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.GITLAB_RESOURCES_CONFIG
 import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.GITLAB_SINCE_CONFIG
 import com.sami12rom.kafka.gitlab.GitlabSourceConfig.Companion.INTERVAL
+import com.sami12rom.kafka.gitlab.Schemas.Companion.mergedRequestKeySchema
+import com.sami12rom.kafka.gitlab.Schemas.Companion.mergedRequestValueSchema
+import com.sami12rom.kafka.gitlab.Structs.Companion.mergedRequestKeyStruct
+import com.sami12rom.kafka.gitlab.Structs.Companion.mergedRequestValueStruct
 import com.sami12rom.kafka.gitlab.helpers.ApiCalls
 import com.sami12rom.kafka.gitlab.helpers.ConnectorVersionDetails
 import com.sami12rom.kafka.gitlab.model.MergedRequest
-import org.apache.kafka.connect.data.Struct
+import org.apache.kafka.connect.header.ConnectHeaders
+import org.apache.kafka.connect.header.Headers
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTask
 import org.slf4j.Logger
@@ -22,8 +27,9 @@ class GitlabSourceTask : SourceTask() {
         val logger: Logger = LoggerFactory.getLogger(GitlabSourceTask::class.java)
     }
 
-    private var props: MutableMap<String, String>? = null
+    var props: MutableMap<String, String>? = null
     private var firstRun: Boolean = true
+    private var validateRepositories: List<String>? = null
 
     override fun version(): String {
         return ConnectorVersionDetails.getVersion()
@@ -32,8 +38,8 @@ class GitlabSourceTask : SourceTask() {
     override fun start(props: MutableMap<String, String>?) {
         logger.info("Starting task ${GitlabSourceTask::class.java}")
         logger.info("Configuration: $props")
-        // source = MySourceSystem(props)
         this.props = props
+        this.validateRepositories = props?.get(GITLAB_REPOSITORIES_CONFIG)?.split(";")
         initializeSource()
     }
 
@@ -42,22 +48,16 @@ class GitlabSourceTask : SourceTask() {
     }
 
     override fun poll(): MutableList<SourceRecord> {
-        sleepForInterval()
         val records = mutableListOf<SourceRecord>()
+        sleepForInterval()
         val currentDateTime = Instant.now()
+
         try {
-            val validateRepositories = props?.get(GITLAB_REPOSITORIES_CONFIG)?.split(";")
             for (repository in validateRepositories!!) {
                 props?.put(GITLAB_REPOSITORIES_CONFIG, repository)
                 val response = ApiCalls.GitLabCall(props!!)
                 for (message in response) {
-                    val record = SourceRecord(
-                        /* sourcePartition = */ sourcePartition(),
-                        /* sourceOffset = */ sourceOffset(Instant.parse(props?.get(GITLAB_SINCE_CONFIG))),
-                        /* topic = */ props!!.get("topic.name.pattern"),
-                        /* valueSchema = */ Schemas.mergedRequestValueSchema,
-                        /* value = */ Structs().structMergedRequestValue(message as MergedRequest),
-                    )
+                    val record = generateSourceRecord(message as MergedRequest)
                     records.add(record)
                 }
             }
@@ -105,5 +105,28 @@ class GitlabSourceTask : SourceTask() {
             firstRun = false
         }
     }
+    fun generateHeaders(): Headers {
+        return ConnectHeaders()
+            .addString(GITLAB_REPOSITORIES_CONFIG, props?.get(GITLAB_REPOSITORIES_CONFIG))
+            .addString(GITLAB_SINCE_CONFIG, props?.get(GITLAB_SINCE_CONFIG))
+    }
+
+    fun generateSourceRecord(message: MergedRequest): SourceRecord {
+        return SourceRecord(
+            /* sourcePartition = */ sourcePartition(),
+            /* sourceOffset = */ sourceOffset(Instant.parse(props?.get(GITLAB_SINCE_CONFIG))),
+            /* topic = */ props!!.get("topic.name.pattern"),
+            /* partition = */ null,
+            /* keySchema = */ mergedRequestKeySchema,
+            /* key = */ mergedRequestKeyStruct(message),
+            /* valueSchema = */ mergedRequestValueSchema,
+            /* value = */ mergedRequestValueStruct(message),
+            /* timestamp = */ Instant.now().epochSecond,
+            /* headers = */ generateHeaders()
+        )
+    }
 }
+
+
+
 

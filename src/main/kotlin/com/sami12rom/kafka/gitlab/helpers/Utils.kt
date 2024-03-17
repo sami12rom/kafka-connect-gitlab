@@ -1,16 +1,23 @@
 package com.sami12rom.kafka.gitlab.helpers
 
+import com.sami12rom.kafka.gitlab.GitlabSourceConnector
 import com.sami12rom.kafka.gitlab.model.MergedRequest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.decodeFromString
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.random.Random
 
 class Utils {
     companion object {
+
+        @JvmStatic
+        val logger: Logger = LoggerFactory.getLogger(Utils::class.java)
+
         fun randomizer(list: List<String>): Pair<List<String>, List<String>> {
             while (true) {
                 val randomizedList = list.shuffled().partition { Random.nextBoolean() }
@@ -49,6 +56,7 @@ class Utils {
             var connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 setRequestProperty("Authorization", token)
+                logger.info("url: $url")
                 connect()
             }
             return try {
