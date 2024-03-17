@@ -41,6 +41,7 @@ allprojects {
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
         implementation("org.slf4j:slf4j-api:2.0.6")
         implementation("commons-validator:commons-validator:1.7")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
         //// Testing dependencies
         //  A library for converting data between Avro and Kafka Connect formats.
         testImplementation("io.confluent:kafka-connect-avro-converter:7.3.0") 

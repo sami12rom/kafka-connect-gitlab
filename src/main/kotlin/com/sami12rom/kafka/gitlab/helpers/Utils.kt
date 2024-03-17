@@ -1,11 +1,16 @@
 package com.sami12rom.kafka.gitlab.helpers
 
+import com.sami12rom.kafka.gitlab.GitlabSourceConfig
 import com.sami12rom.kafka.gitlab.GitlabSourceConnector
+import com.sami12rom.kafka.gitlab.GitlabSourceTask
 import com.sami12rom.kafka.gitlab.model.MergedRequest
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.decodeFromString
+import org.apache.kafka.connect.source.SourceRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.HttpURLConnection
@@ -64,6 +69,23 @@ class Utils {
                 response
             } finally {
                 connection.disconnect()
+            }
+        }
+        suspend fun processRepositoriesAsync(
+            validateRepositories: List<String>?,
+            props: MutableMap<String, String>?,
+            records: MutableList<SourceRecord>,
+            generateSourceRecord: (message: MergedRequest) -> SourceRecord) = coroutineScope {
+            validateRepositories?.map { repository ->
+                async {
+                    GitlabSourceTask.logger.info("Processing repository: $repository on thread: ${Thread.currentThread()}")
+                    props?.put(GitlabSourceConfig.GITLAB_REPOSITORIES_CONFIG, repository)
+                    val response = ApiCalls.GitLabCall(props!!)
+                    for (message in response) {
+                        val record = generateSourceRecord(message as MergedRequest)
+                        records.add(record)
+                    }
+                }.await()
             }
         }
     }

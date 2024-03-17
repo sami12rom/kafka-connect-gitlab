@@ -85,7 +85,7 @@ class GitlabSourceTask : SourceTask() {
     }
 
     fun initializeSource(): Map<String, Any>?{
-         val lastRecordedOffset = context.offsetStorageReader().offset(sourcePartition())
+        val lastRecordedOffset = context?.offsetStorageReader()?.offset(sourcePartition())
          if (lastRecordedOffset != null) {
              // Use the last recorded offset to start reading from the source
              logger.info("Last recorded offset: ${lastRecordedOffset.get(GITLAB_SINCE_CONFIG)}")
